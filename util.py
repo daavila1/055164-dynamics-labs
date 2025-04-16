@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from typing import Union
 
 
@@ -48,8 +49,11 @@ def rated_nominal_speed(p_m_r: float, t_m_r: float):  # p_m_r: [W], t_m_r: [Nm]
 
 # Constant Torque Mode
 def constant_torque_mode(
-    w_m: Union[float, np.ndarray], w_m_r: float, t_m_r: float, p_m_r: float
-) -> Union[float, np.ndarray]:  # w_m: [rad/s], w_m_r: [rad/s], p_m_r: [W], t_m_r: [Nm]
+    w_m: Union[float, np.ndarray], # [rad/s]
+    w_m_r: float, # [rad/s]
+    t_m_r: float, # [W]
+    p_m_r: float # [Nm]
+) -> Union[float, np.ndarray]: 
     t_m = np.where(
         w_m <= w_m_r,
         t_m_r,  # constant toque mode
@@ -139,3 +143,40 @@ def friction_force(
     mu_v = mu / (1 + 0.01 * v)
 
     return mu_v * n_traction
+
+
+# Rolling Resistance
+def rolling_resistance(
+    v: float, # Velocity 
+    m: float, # mass 
+    f_0: float, # Constant rolling resistance
+    f_1: float, # Speed-dependent term
+    g: float, # Gravity
+    slope: float, # instant slope [%]    
+) -> float:
+    r_r = (f_0 + f_1 ** v) * m * g * (1 - slope / 100)
+    
+    return r_r # [N]
+    
+
+# Aero dynamic force
+def aero_dynamic_force(
+    c_d: float, # Drag coefficient 
+    s: float, # Projected frontal area 
+    v: float, # Velocity
+) -> float:
+    ad_f = 0.5 * 1.225 * c_d * s * v ** 2
+    return ad_f
+
+
+# weight force
+def road_gradient(
+    m: float, # Mass
+    g: float, # Gravity
+    alpha: float, # Degrees
+) -> float:
+    f_w = m * g  * math.sin(alpha)
+    
+    return f_w
+
+    
